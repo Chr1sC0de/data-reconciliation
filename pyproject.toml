@@ -1,0 +1,15 @@
+[build-system]
+requires      = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name        = "datrec"
+description = "reconcile tables with polar"
+version     = "0.1.0"
+readme      = "README.md"
+dependencies = [
+  "polars",
+]
+authors         = [
+  { name = "Chris Mamon", email = "chrisam1993@live.com" },
+]

@@ -1,0 +1,19 @@
+{%macro get_columns(columns, stop="")%}
+    {% for col in columns %}
+    {% if loop.last%}
+    {{col}}{{stop}}
+{% else %}
+    {{col}},
+{% endif %}
+{% endfor %}
+{% endmacro %}
+select
+{{ get_columns(columns, stop=",") }}
+    count(*) as n_repetitions
+from
+    {{table_name}}
+group by
+{{ get_columns(columns) }}
+having
+    active_ind = 'Y'
+    and count(*) > 1
