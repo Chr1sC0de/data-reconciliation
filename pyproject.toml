@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name        = "datarec"
 description = "utilities for reconciling data"
-version     = "0.1.0"
+version     = "0.1.1"
 readme      = "README.md"
 dependencies = [
   "polars",

@@ -24,21 +24,69 @@ class TableReconciliationData:
     columns_tested: List[str]
 
     @property
-    def is_left_col(self):
+    def is_left_col(self) -> List[str]:
         return [c for c in self.results.columns if "**left**" in c.lower()][0]
 
     @property
-    def is_right_col(self):
+    def is_right_col(self) -> List[str]:
         return [c for c in self.results.columns if "**right**" in c.lower()][0]
 
-    def get_left_only(self) -> pl.LazyFrame:
-        return self.results.filter(
-            pl.col(self.is_left_col) & pl.col(self.is_right_col).is_not()
+    @property
+    def validation_columns(self) -> List[str]:
+        return [
+            c for c in self.results.columns if "~*validation*~" in c.lower()
+        ]
+
+    @property
+    def left_columns(self) -> List[str]:
+        return [
+            c for c in self.results.columns if "~%s~" % self.left in c.lower()
+        ]
+
+    @property
+    def right_columns(self) -> List[str]:
+        return [
+            c for c in self.results.columns if "~%s~" % self.right in c.lower()
+        ]
+
+    def get_rows_left_only(self) -> pl.LazyFrame:
+        return (
+            self.results.filter(
+                pl.col(self.is_left_col) & pl.col(self.is_right_col).is_not()
+            )
+            .select(self.columns_indexes + self.left_columns)
+            .rename(
+                {
+                    o: n
+                    for o, n in zip(
+                        self.left_columns,
+                        [
+                            c.replace(" ~%s~" % self.left, "")
+                            for c in self.left_columns
+                        ],
+                    )
+                }
+            )
         )
 
-    def get_right_only(self) -> pl.LazyFrame:
-        return self.results.filter(
-            pl.col(self.is_right_col) & pl.col(self.is_left_col).is_not()
+    def get_rows_right_only(self) -> pl.LazyFrame:
+        return (
+            self.results.filter(
+                pl.col(self.is_right_col) & pl.col(self.is_left_col).is_not()
+            )
+            .select(self.columns_indexes + self.right_columns)
+            .rename(
+                {
+                    o: n
+                    for o, n in zip(
+                        self.right_columns,
+                        [
+                            c.replace(" ~%s~" % self.right, "")
+                            for c in self.right_columns
+                        ],
+                    )
+                }
+            )
         )
 
 

@@ -1,3 +1,4 @@
+import pathlib as pt
 from triple_quote_clean import TripleQuoteCleaner
 
 
@@ -86,3 +87,5 @@ query2 = (
 """
     >> tqc
 )
+
+pt.Path("reports").mkdir(exist_ok=True)

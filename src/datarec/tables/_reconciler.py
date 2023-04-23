@@ -109,8 +109,8 @@ class Reconciler:
 
         return TableReconciliationData(
             validation,
-            pl1_name,
-            pl2_name,
+            setcase(pl1_name),
+            setcase(pl2_name),
             _all_columns,
             _columns_used_as_indexes,
             _columns_ignored,
