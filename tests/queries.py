@@ -1,5 +1,9 @@
+import polars as pl
 import pathlib as pt
 from triple_quote_clean import TripleQuoteCleaner
+
+pl.Config.set_tbl_cols(20)
+pl.Config.set_fmt_str_lengths(100)
 
 
 tqc = TripleQuoteCleaner(skip_top_lines=1)

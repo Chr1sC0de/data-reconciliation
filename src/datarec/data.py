@@ -39,15 +39,11 @@ class TableReconciliationData:
 
     @property
     def left_columns(self) -> List[str]:
-        return [
-            c for c in self.results.columns if "~%s~" % self.left in c.lower()
-        ]
+        return [c for c in self.results.columns if " ~%s~" % self.left in c]
 
     @property
     def right_columns(self) -> List[str]:
-        return [
-            c for c in self.results.columns if "~%s~" % self.right in c.lower()
-        ]
+        return [c for c in self.results.columns if " ~%s~" % self.right in c]
 
     def get_rows_left_only(self) -> pl.LazyFrame:
         return (

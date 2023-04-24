@@ -15,18 +15,14 @@ except ImportError:
 def test_validate_no_index():
     connector1 = connectors.oracle.improd()
     connector2 = connectors.databricks.prod()
-
     p1 = connector1.cache()(query1)
-
     p2 = connector2.cache()(query2)
-
     validation = tables.is_equal(
         p1,
         p2,
         show_both_first=True,
         show_failed_first=True,
     )
-
     validation.results.collect().write_csv("reports/.is_equal_no_index.csv")
 
 
@@ -51,5 +47,5 @@ def test_validate_with_index():
 
 
 if __name__ == "__main__":
-    test_validate_no_index()
     test_validate_with_index()
+    test_validate_no_index()
