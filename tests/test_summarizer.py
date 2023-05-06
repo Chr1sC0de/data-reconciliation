@@ -67,50 +67,50 @@ validation_with_index = validate_with_index()
 class TestSummarization:
     def test_left_no_index(self):
         summary = tables.summarize_reconciliation(validation_no_index, "left")
-        assert summary.validation_ratio_entries == 1, "failed"
+        assert summary.validation_ratio_entries == 0.8563, "failed"
 
     def test_right_no_index(self):
         summary = tables.summarize_reconciliation(validation_no_index, "right")
         assert np.isclose(
-            summary.validation_ratio_entries, 0.9523809523809523
+            summary.validation_ratio_entries, 0.8155238095238095
         ), "failed"
 
     def test_inner_no_index(self):
         summary = tables.summarize_reconciliation(validation_no_index, "inner")
-        assert summary.validation_ratio_entries == 1, "failed"
+        assert summary.validation_ratio_entries == 0.8563, "failed"
 
     def test_outer_no_index(self):
         summary = tables.summarize_reconciliation(validation_no_index, "outer")
         assert np.isclose(
-            summary.validation_ratio_entries, 0.9523809523809523
+            summary.validation_ratio_entries, 0.8155238095238095
         ), "failed"
 
     def test_left_with_index(self):
         summary = tables.summarize_reconciliation(
             validation_with_index, "left"
         )
-        assert summary.validation_ratio_entries == 1, "failed"
+        assert summary.validation_ratio_entries == 0.8563, "failed"
 
     def test_right_with_index(self):
         summary = tables.summarize_reconciliation(
             validation_with_index, "right"
         )
         assert np.isclose(
-            summary.validation_ratio_entries, 0.9523809523809523
+            summary.validation_ratio_entries, 0.8155238095238095
         ), "failed"
 
     def test_inner_with_index(self):
         summary = tables.summarize_reconciliation(
             validation_with_index, "inner"
         )
-        assert summary.validation_ratio_entries == 1, "failed"
+        assert summary.validation_ratio_entries == 0.8563, "failed"
 
     def test_outer_with_index(self):
         summary = tables.summarize_reconciliation(
             validation_with_index, "outer"
         )
         assert np.isclose(
-            summary.validation_ratio_entries, 0.9523809523809523
+            summary.validation_ratio_entries, 0.8155238095238095
         ), "failed"
 
 

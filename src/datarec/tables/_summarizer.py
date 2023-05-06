@@ -52,18 +52,18 @@ def _summarizer(arr: np_types.DTypeLike):
         row_validation_ratio = 0
 
     return (
-        rows,
-        cols,
-        n_entries,
-        n_entries_passed,
-        n_entries_failed,
-        n_rows_passed,
-        n_rows_partially_passed,
-        n_rows_failed,
-        entry_validation_ratio,
-        row_validation_ratio,
-        avg_row_invalidations,
-        std_row_invalidations,
+        int(rows),
+        int(cols),
+        int(n_entries),
+        int(n_entries_passed),
+        int(n_entries_failed),
+        int(n_rows_passed),
+        int(n_rows_partially_passed),
+        int(n_rows_failed),
+        float(entry_validation_ratio),
+        float(row_validation_ratio),
+        float(avg_row_invalidations),
+        float(std_row_invalidations),
     )
 
 
@@ -79,10 +79,10 @@ def _get_totals(lf: pl.LazyFrame):
     n_total_rows_union = len(lf.select(left_col).collect())
 
     return (
-        n_total_rows_left,
-        n_total_rows_right,
-        n_total_rows_intersection,
-        n_total_rows_union,
+        int(n_total_rows_left),
+        int(n_total_rows_right),
+        int(n_total_rows_intersection),
+        int(n_total_rows_union),
     )
 
 

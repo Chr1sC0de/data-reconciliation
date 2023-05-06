@@ -1,3 +1,5 @@
+import yaml
+import json
 from pprint import pformat
 from typing import List
 import polars as pl
@@ -32,6 +34,10 @@ class TableReconciliationData:
         return [c for c in self.results.columns if "**right**" in c.lower()][0]
 
     @property
+    def is_intersection_col(self) -> List[str]:
+        return [c for c in self.results.columns if "**both**" in c.lower()][0]
+
+    @property
     def validation_columns(self) -> List[str]:
         return [
             c for c in self.results.columns if "~*validation*~" in c.lower()
@@ -44,6 +50,21 @@ class TableReconciliationData:
     @property
     def right_columns(self) -> List[str]:
         return [c for c in self.results.columns if " ~%s~" % self.right in c]
+
+    def get_results_union(self) -> pl.LazyFrame:
+        return self.results
+
+    def get_results_left(self) -> pl.LazyFrame:
+        return self.results.filter(pl.col(self.is_left_col))
+
+    def get_results_right(self) -> pl.LazyFrame:
+        return self.results.filter(pl.col(self.is_right_col))
+
+    def get_results_intersection(self) -> pl.LazyFrame:
+        return self.results.filter(pl.col(self.is_intersection_col))
+
+    def get_results_disjoint(self) -> pl.LazyFrame:
+        return self.results.filter(pl.col(self.is_intersection_col).is_not())
 
     def get_rows_left_only(self) -> pl.LazyFrame:
         return (
@@ -95,7 +116,6 @@ class TableReconciliationSummarizationData:
     n_tested_entries_passed: int
     n_tested_entries_failed: int
 
-    n_tested_rows: int
     n_tested_rows_passed: int
     n_tested_rows_passed_partially: int
     n_tested_rows_failed: int
@@ -130,18 +150,18 @@ class TableReconciliationSummarizationData:
 
     def to_dict(self):
         return dict(
+            TestedMeta=dict(
+                flag=self.flag,
+                passed=self.PASS,
+                tested_rows=self.n_tested_rows,
+                tested_cols=self.n_tested_cols,
+                tested_entries=self.n_tested_entries,
+            ),
             Totals=dict(
                 n_rows_left=self.n_total_rows_left,
                 n_rows_right=self.n_total_rows_right,
                 n_rows_intersecting=self.n_total_rows_intersecting,
                 n_rows_union=self.n_total_rows_union,
-            ),
-            TestedMeta=dict(
-                passed=self.PASS,
-                flag=self.flag,
-                tested_rows=self.n_tested_rows,
-                tested_cols=self.n_tested_cols,
-                tested_entries=self.n_tested_entries,
             ),
             TestedRows=dict(
                 n_tested_rows_passed=self.n_tested_rows_passed,

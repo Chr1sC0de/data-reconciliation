@@ -39,7 +39,7 @@ query1 = (
         periodid,
         marketfeeid,
         participantcategoryid
-        order by
+    order by
         settlementdate,
         runno,
         participantid,
@@ -65,7 +65,10 @@ query2 = (
             -1
         ) as max_effective_from_timestamp,
         nvl (sum(energy), -1) as sum_energy,
-        nvl (sum(marketfeevalue), -1) as sum_marketfeevalue,
+        case
+            when nvl (sum(marketfeevalue), 0) > - 0.2 then nvl (sum(marketfeevalue), 0)
+            else nvl (sum(marketfeevalue), 0) - 0.1
+        end as sum_marketfeevalue,
         nvl (sum(feerate), -1) as sum_feerate,
         nvl (sum(feeunits), -1) as sum_feeunits
     from
@@ -80,7 +83,7 @@ query2 = (
         periodid,
         marketfeeid,
         participantcategoryid
-        order by
+    order by
         nvl (cast(date (settlementdate) as string), -1),
         runno,
         participantid,
