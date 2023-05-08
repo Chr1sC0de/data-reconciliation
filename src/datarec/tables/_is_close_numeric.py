@@ -21,20 +21,26 @@ class _ReconcilerMethodIsCloseFloat(_ReconcilerMethodBase):
             [
                 (
                     (
-                        (pl.col(get_left(c)) - pl.col(get_right(c))).abs()
-                        < a_tol
-                    )
-                    | (
                         (
-                            (pl.col(get_left(c)) - pl.col(get_right(c)))
-                            / (
-                                (pl.col(get_left(c)) + pl.col(get_right(c)))
-                                / 2
-                                + 1e-20
-                            )
-                        ).abs()
-                        < r_tol
+                            (pl.col(get_left(c)) - pl.col(get_right(c))).abs()
+                            < a_tol
+                        )
+                        | (
+                            (
+                                (pl.col(get_left(c)) - pl.col(get_right(c)))
+                                / (
+                                    (
+                                        pl.col(get_left(c))
+                                        + pl.col(get_right(c))
+                                    )
+                                    / 2
+                                    + 1e-20
+                                )
+                            ).abs()
+                            < r_tol
+                        )
                     )
+                    | (pl.col(get_left(c)).eq(pl.col(get_right(c))))
                 )
                 .fill_null(pl.lit(False))
                 .alias("%s ~*%s*~" % (c, setcase("validation")))
