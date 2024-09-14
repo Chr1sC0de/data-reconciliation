@@ -2,6 +2,7 @@ import typing as T
 
 import polars as pl
 
+from ..utils.functions import get_lazyframe_column_names
 from ..data import TableReconciliationData
 from ._method_base import _ReconcilerMethodBase
 from ._reconciler import Reconciler
@@ -17,12 +18,17 @@ class _IsEqualReconcilerMethodBase(_ReconcilerMethodBase):
 
         validation = merged.with_columns(
             [
-                (pl.col(get_left(c)) == pl.col(get_right(c))).alias(
-                    "%s ~*%s*~" % (c, setcase("validation"))
+                pl.when(
+                    pl.col(get_left(c)).is_null()
+                    & pl.col(get_right(c)).is_null()
                 )
+                .then(pl.lit(True))
+                .otherwise(pl.col(get_left(c)) == pl.col(get_right(c)))
+                .alias("%s ~*%s*~" % (c, setcase("validation")))
                 for c in test_columns
             ]
         )
+
         return validation
 
 
@@ -45,7 +51,9 @@ class _IsEqualReconcilerMethodWithIndex(_IsEqualReconcilerMethodBase):
         columns_to_ignore: T.List[int],
         columns_as_indexes: T.List[str],
     ) -> pl.LazyFrame:
-        index_columns = [pl1.columns[i] for i in columns_as_indexes]
+        index_columns = [
+            get_lazyframe_column_names(pl1)[i] for i in columns_as_indexes
+        ]
         test_columns = list(
             filter(lambda x: x not in index_columns, pl1.columns)
         )
