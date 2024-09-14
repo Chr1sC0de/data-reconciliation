@@ -1,8 +1,10 @@
 import typing as T
 
+import polars as pl
 from ..data import MethodData, TableReconciliationData
 from ..utils import GetSuffixed, SetCase
 from ..utils.functions import (
+    get_lazyframe_column_names,
     convert_iterable_to_list,
     get_formated_ordered_union,
     group_suffixed,
@@ -45,9 +47,6 @@ class Reconciler:
         get_right = GetSuffixed(setcase, pl2_name)
         methods = MethodData(setcase, get_left, get_right)
 
-        compare_no_index = self.NoIndexConstructor(methods)
-        compare_with_index = self.WithIndexConstructor(methods)
-
         if column_indexes is None:
             column_indexes = []
 
@@ -59,16 +58,22 @@ class Reconciler:
         columns_to_ignore = convert_iterable_to_list(columns_to_ignore)
 
         shared_columns = get_formated_ordered_union(
-            pl1.columns, pl2.columns, formatter=setcase
+            get_lazyframe_column_names(pl1),
+            get_lazyframe_column_names(pl2),
+            formatter=setcase,
         )
 
-        pl1 = pl1.rename({c: setcase(c) for c in pl1.columns})
-        pl2 = pl2.rename({c: setcase(c) for c in pl2.columns})
+        pl1 = pl1.rename(
+            {c: setcase(c) for c in get_lazyframe_column_names(pl1)}
+        )
+        pl2 = pl2.rename(
+            {c: setcase(c) for c in get_lazyframe_column_names(pl2)}
+        )
 
         pl1 = pl1.select([pl.col(c) for c in shared_columns])
         pl2 = pl2.select([pl.col(c) for c in shared_columns])
 
-        _all_columns = pl1.columns
+        _all_columns = get_lazyframe_column_names(pl1)
         _columns_used_as_indexes = [shared_columns[i] for i in column_indexes]
         _columns_tested = [
             c for c in _all_columns if c not in _columns_used_as_indexes
@@ -80,10 +85,12 @@ class Reconciler:
         ]
 
         if len(column_indexes) == 0:
+            compare_no_index = self.NoIndexConstructor(methods)
             validation = compare_no_index(
                 pl1, pl2, columns_to_ignore, **kwargs
             )
         else:
+            compare_with_index = self.WithIndexConstructor(methods)
             validate_index_columns(pl1.clone(), column_indexes, "left")
             validate_index_columns(pl2.clone(), column_indexes, "right")
 
@@ -92,13 +99,16 @@ class Reconciler:
             )
 
         if interlaced:
-            sorted_columns = group_suffixed(validation.columns)
+            sorted_columns = group_suffixed(
+                get_lazyframe_column_names(validation)
+            )
 
             validation = validation.select([pl.col(c) for c in sorted_columns])
 
         if show_failed_first:
             validation_columns = filter(
-                lambda x: setcase("~*validation*~") in x, validation.columns
+                lambda x: setcase("~*validation*~") in x,
+                get_lazyframe_column_names(validation),
             )
             validation = validation.sort(by=validation_columns)
 
