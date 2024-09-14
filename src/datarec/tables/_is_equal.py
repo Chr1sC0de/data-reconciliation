@@ -55,7 +55,7 @@ class _IsEqualReconcilerMethodWithIndex(_IsEqualReconcilerMethodBase):
             get_lazyframe_column_names(pl1)[i] for i in columns_as_indexes
         ]
         test_columns = list(
-            filter(lambda x: x not in index_columns, pl1.columns)
+            filter(lambda x: x not in index_columns, pl1.collect_schema().names())
         )
         return super().__call__(pl1, pl2, test_columns, columns_to_ignore)
 
