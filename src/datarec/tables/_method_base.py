@@ -5,6 +5,7 @@ import typing as T
 import polars as pl
 
 from ..data import MethodData
+from ..utils.functions import get_lazyframe_column_names
 
 
 @dataclass
@@ -14,8 +15,7 @@ class _ReconcilerMethodBase(abc.ABC):
     @abc.abstractmethod
     def validator(
         self, test_columns: str, merged: pl.LazyFrame
-    ) -> pl.LazyFrame:
-        ...
+    ) -> pl.LazyFrame: ...
 
     def __call__(
         self,
@@ -29,7 +29,7 @@ class _ReconcilerMethodBase(abc.ABC):
         get_right = self.methods.get_right
         setcase = self.methods.setcase
 
-        original_columns = pl1.columns.copy()
+        original_columns = get_lazyframe_column_names(pl1).copy()
 
         pl1 = pl1.rename({c: get_left(c) for c in test_columns})
         pl1 = pl1.with_columns(pl.lit(True).alias(setcase("**left**")))
@@ -46,8 +46,12 @@ class _ReconcilerMethodBase(abc.ABC):
             merged = (
                 pl1.join(
                     pl2,
-                    how="outer",
-                    on=[c for c in pl1.columns if c in original_columns],
+                    how="full",
+                    on=[
+                        c
+                        for c in get_lazyframe_column_names(pl1)
+                        if c in original_columns
+                    ],
                 )
                 .collect()
                 .lazy()
