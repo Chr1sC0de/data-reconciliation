@@ -4,6 +4,10 @@ from typing import Iterable, Callable, Tuple, List
 from collections import OrderedDict
 
 
+def get_lazyframe_column_names(df: pl.LazyFrame) -> List[str]:
+    return df.collect_schema().names()
+
+
 def get_lazyframe_length(lf: pl.LazyFrame) -> int:
     try:
         return lf.with_row_count().select("row_nr").last().collect().item() + 1
@@ -137,13 +141,15 @@ def validate_index_columns(
         and total number of rows in the DataFrame.
     """
 
-    columns = [df.columns[c] for c in index_of_columns]
+    columns = [get_lazyframe_column_names(df)[c] for c in index_of_columns]
 
     repetitions_columns = (
         df.select([pl.col(c) for c in columns])
-        .groupby([pl.col(c) for c in columns])
-        .agg(pl.count().alias("group_repetitions"))
-        .with_columns(pl.col("group_repetitions").map(lambda x: x == 1))
+        .group_by([pl.col(c) for c in columns])
+        .agg(pl.len().alias("group_repetitions"))
+        .with_columns(
+            pl.col("group_repetitions").map_batches(lambda x: x == 1)
+        )
         .select("group_repetitions")
     ).collect()
 
