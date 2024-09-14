@@ -138,7 +138,7 @@ class TableReconciliationSummarizationData:
         if self.n_tested_entries > 0:
             return (
                 self.n_tested_entries_passed / self.n_tested_entries
-                == self.pass_ratio
+                > self.pass_ratio
             )
         return False
 
