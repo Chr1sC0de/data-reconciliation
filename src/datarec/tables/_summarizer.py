@@ -1,6 +1,8 @@
+from typing import Literal
 import numpy as np
 from numpy import typing as np_types
 import polars as pl
+from ..utils.functions import get_lazyframe_column_names
 from ..data import (
     TableReconciliationData,
     TableReconciliationSummarizationData,
@@ -9,7 +11,9 @@ from ..data import (
 
 def _get_validations(lf: pl.LazyFrame) -> pl.LazyFrame:
     validation_columns = [
-        c for c in lf.columns if "~*validation*~" in c.lower()
+        c
+        for c in get_lazyframe_column_names(lf)
+        if "~*validation*~" in c.lower()
     ]
     return lf.select([pl.col(c) for c in validation_columns])
 
@@ -23,7 +27,7 @@ def _make_2d(arr: np_types.NDArray) -> np_types.NDArray:
 def _summarizer(arr: np_types.DTypeLike):
     rows, cols = arr.shape
     n_entries = rows * cols
-
+    arr[arr == None] = False
     n_entries_passed = arr.sum()
     n_entries_failed = n_entries - n_entries_passed
 
@@ -68,9 +72,15 @@ def _summarizer(arr: np_types.DTypeLike):
 
 
 def _get_totals(lf: pl.LazyFrame):
-    left_col = [c for c in lf.columns if "**left**" in c.lower()][0]
-    right_col = [c for c in lf.columns if "**right**" in c.lower()][0]
-    intersecting_col = [c for c in lf.columns if "**both**" in c.lower()][0]
+    left_col = [
+        c for c in get_lazyframe_column_names(lf) if "**left**" in c.lower()
+    ][0]
+    right_col = [
+        c for c in get_lazyframe_column_names(lf) if "**right**" in c.lower()
+    ][0]
+    intersecting_col = [
+        c for c in get_lazyframe_column_names(lf) if "**both**" in c.lower()
+    ][0]
     n_total_rows_left = lf.select(left_col).collect().to_numpy().sum()
     n_total_rows_right = lf.select(right_col).collect().to_numpy().sum()
     n_total_rows_intersection = (
@@ -99,17 +109,23 @@ def _shared_summarize(
 
 
 def _left_summarize(lf: pl.LazyFrame) -> TableReconciliationSummarizationData:
-    filter_col = [c for c in lf.columns if "**left**" in c.lower()][0]
+    filter_col = [
+        c for c in get_lazyframe_column_names(lf) if "**left**" in c.lower()
+    ][0]
     return _shared_summarize(lf, filter_col)
 
 
 def _right_summarize(lf: pl.LazyFrame) -> TableReconciliationSummarizationData:
-    filter_col = [c for c in lf.columns if "**right**" in c.lower()][0]
+    filter_col = [
+        c for c in get_lazyframe_column_names(lf) if "**right**" in c.lower()
+    ][0]
     return _shared_summarize(lf, filter_col)
 
 
 def _inner_summarize(lf: pl.LazyFrame) -> TableReconciliationSummarizationData:
-    filter_col = [c for c in lf.columns if "**both**" in c.lower()][0]
+    filter_col = [
+        c for c in get_lazyframe_column_names(lf) if "**both**" in c.lower()
+    ][0]
     return _shared_summarize(lf, filter_col)
 
 
@@ -126,7 +142,8 @@ summarizer_map = {
 
 
 def summarize_reconciliation(
-    reconciliation: TableReconciliationData, join: str = "outer"
+    reconciliation: TableReconciliationData,
+    join: Literal["left", "right", "inner", "outer"] = "outer",
 ) -> TableReconciliationSummarizationData:
     results = reconciliation.results
     column_indexes = reconciliation.columns_indexes
@@ -135,7 +152,7 @@ def summarize_reconciliation(
     # columns to process
     processable_columns = [
         pl.col(c)
-        for c in results.columns
+        for c in get_lazyframe_column_names(results)
         if all([c not in t for t in (columns_ignored + column_indexes)])
     ]
 
